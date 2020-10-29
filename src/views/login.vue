@@ -6,7 +6,8 @@
              alt="">
       </div>
       <!-- 验证规则需要给表单 el-form 加一个属性  不加冒号就成字符串了  这是规定 -->
-      <el-form style="margin-top:20px"
+      <el-form ref="loginForm"
+               style="margin-top:20px"
                :model="loginForm"
                :rules="loginRules">
         <el-form-item prop="mobile">
@@ -24,7 +25,8 @@
           <el-checkbox v-model="loginForm.check">我已阅读并同意用户协议和隐私条款</el-checkbox>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary"
+          <el-button @click="login"
+                     type="primary"
                      style="width:100%">登录</el-button>
         </el-form-item>
       </el-form>
@@ -59,9 +61,32 @@ export default {
           { pattern: /^\d{6}$/, message: '验证码不正确' } //
         ],
         check: [
-          { validator: validator }
+          { validator }
         ]
       }
+    }
+  },
+  methods: {
+    login () {
+      this.$refs.loginForm.validate(isOK => {
+        if (isOK) {
+          this.$axios({
+            url: '/authorizations',
+            method: 'post',
+            // data是放置body参数params是放置地址参数的
+            data: this.loginForm
+          }).then(result => {
+            console.log(result)
+            localStorage.setItem('user-token', JSON.stringify(result.data.data.token))
+            this.$router.push('/home')
+          }).catch(() => {
+            this.$message({
+              message: '错误',
+              type: 'warning'
+            })
+          })
+        }
+      })
     }
   }
 }
